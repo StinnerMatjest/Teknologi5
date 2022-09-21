@@ -39,40 +39,16 @@ namespace Server
                 Console.WriteLine("Waiting for a connection...");
                 Socket handler;
                 // Incoming data from the client.
-                string data = null;
-                byte[] bytes = null;
-                bool endOfFileReceived = false;
                 bool sessionOver = false;
-
-
+                int counter = 0;
+                Server s = new Server();
                 do
                 {
+                    counter++;
                     handler = listener.Accept();
-
-
-                    do
-                    {
-                        bytes = new byte[1024];
-                        int bytesRec = handler.Receive(bytes);
-                        data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                        if (data.IndexOf("<EOF>") > -1)
-                        {
-                            endOfFileReceived = true;
-                        }
-                        Console.WriteLine("Text received : {0}", data);
-                        byte[] msg = Encoding.ASCII.GetBytes(data);
-                        handler.Send(msg);
-                    } while (!endOfFileReceived);
-
-
-                    if (data.Contains("Exit"))
-                    {
-                        sessionOver = true;
-                        handler.Shutdown(SocketShutdown.Both);
-                        handler.Close();
-                    }
-                    endOfFileReceived = false;
-                    data = null;
+                    Console.WriteLine(counter + "Clients Connected");
+                    Thread userThread = new Thread(new ThreadStart(() => s.User(handler, sessionOver)));
+                    userThread.Start();
                 } while (!sessionOver);
 
             }
@@ -82,10 +58,44 @@ namespace Server
             }
 
             Console.WriteLine("\n Press any key to continue...");
-            Console.ReadKey();
+                Console.ReadKey();
         }
 
+        public void User(Socket client, bool sessionOver)
+        {
+            //byte[] msg = new byte[1024];
+            //int size = client.Receive(msg);
+            //client.Send(msg, 0, size, SocketFlags.None);
+            string data = null;
+            byte[] bytes = null;
+            bool endOfFileReceived = false;
+
+                do
+                {
+                    bytes = new byte[1024];
+                    int bytesRec = client.Receive(bytes);
+                    data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    if (data.IndexOf("<EOF>") > -1)
+                    {
+                        endOfFileReceived = true;
+                    }
+                    Console.WriteLine("Text received : {0}", data);
+                    byte[] msg = Encoding.ASCII.GetBytes(data);
+                    client.Send(msg);
+                } while (!endOfFileReceived);
 
 
+                if (data.Contains("Exit"))
+                {
+                    sessionOver = true;
+                    client.Shutdown(SocketShutdown.Both);
+                    client.Close();
+                }
+            endOfFileReceived = false;
+            data = null;
+
+        }
     }
+
 }
+

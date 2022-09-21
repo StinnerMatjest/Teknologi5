@@ -49,6 +49,10 @@ namespace Client
 
                     SendMessage(sender);
 
+                        byte[] msgFromServer = new byte[1024];
+                        int size = sender.Receive(msgFromServer);
+                        Console.WriteLine("Server" + Encoding.ASCII.GetString(msgFromServer, 0, size));
+
                     // Receive the response from the remote device.
                     int bytesRec = sender.Receive(bytes);
                     Console.WriteLine("Echoed test = {0}",
