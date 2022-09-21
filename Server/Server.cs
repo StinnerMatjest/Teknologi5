@@ -37,17 +37,20 @@ namespace Server
                 listener.Listen(10);
 
                 Console.WriteLine("Waiting for a connection...");
-                Socket handler = listener.Accept();
-
+                Socket handler;
                 // Incoming data from the client.
                 string data = null;
                 byte[] bytes = null;
                 bool endOfFileReceived = false;
                 bool sessionOver = false;
 
-                while (!sessionOver)
+
+                do
                 {
-                    while (!endOfFileReceived)
+                    handler = listener.Accept();
+
+
+                    do
                     {
                         bytes = new byte[1024];
                         int bytesRec = handler.Receive(bytes);
@@ -59,17 +62,19 @@ namespace Server
                         Console.WriteLine("Text received : {0}", data);
                         byte[] msg = Encoding.ASCII.GetBytes(data);
                         handler.Send(msg);
-                    }
+                    } while (!endOfFileReceived);
 
 
                     if (data.Contains("Exit"))
                     {
                         sessionOver = true;
+                        handler.Shutdown(SocketShutdown.Both);
+                        handler.Close();
                     }
-                }
-                
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
+                    endOfFileReceived = false;
+                    data = null;
+                } while (!sessionOver);
+
             }
             catch (Exception e)
             {
