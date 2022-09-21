@@ -42,22 +42,32 @@ namespace Server
                 // Incoming data from the client.
                 string data = null;
                 byte[] bytes = null;
+                bool endOfFileReceived = false;
+                bool sessionOver = false;
 
-                while (true)
+                while (!sessionOver)
                 {
-                    bytes = new byte[1024];
-                    int bytesRec = handler.Receive(bytes);
-                    data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                    if (data.IndexOf("<EOF>") > -1)
+                    while (!endOfFileReceived)
                     {
-                        break;
+                        bytes = new byte[1024];
+                        int bytesRec = handler.Receive(bytes);
+                        data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                        if (data.IndexOf("<EOF>") > -1)
+                        {
+                            endOfFileReceived = true;
+                        }
+                        Console.WriteLine("Text received : {0}", data);
+                        byte[] msg = Encoding.ASCII.GetBytes(data);
+                        handler.Send(msg);
+                    }
+
+
+                    if (data.Contains("Exit"))
+                    {
+                        sessionOver = true;
                     }
                 }
-
-                Console.WriteLine("Text received : {0}", data);
-
-                byte[] msg = Encoding.ASCII.GetBytes(data);
-                handler.Send(msg);
+                
                 handler.Shutdown(SocketShutdown.Both);
                 handler.Close();
             }

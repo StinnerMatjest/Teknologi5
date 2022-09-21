@@ -2,6 +2,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 
 namespace Client
@@ -44,25 +45,19 @@ namespace Client
 
                     Console.WriteLine("Socket connected to {0}",
                         sender.RemoteEndPoint.ToString());
+                    Console.WriteLine("Type message to send:");
 
-                    string text = "Alexander";
-                    // Encode the data string into a byte array.
-                    byte[] msg = Encoding.ASCII.GetBytes(text+
-                    "<EOF>");
-
-                    // Send the data through the socket.
-                    int bytesSent = sender.Send(msg);
+                    SendMessage(sender);
 
                     // Receive the response from the remote device.
                     int bytesRec = sender.Receive(bytes);
                     Console.WriteLine("Echoed test = {0}",
                         Encoding.ASCII.GetString(bytes, 0, bytesRec));
-
                     // Release the socket.
                     sender.Shutdown(SocketShutdown.Both);
                     sender.Close();
-
                 }
+
                 catch (ArgumentNullException ane)
                 {
                     Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
@@ -82,7 +77,15 @@ namespace Client
                 Console.WriteLine(e.ToString());
             }
             }
-            
+             void SendMessage(Socket sender)
+            {
+                string text = Console.ReadLine();
+                // Encode the data string into a byte array.
+                byte[] msg = Encoding.ASCII.GetBytes(text +
+                "<EOF>");
+                // Send the data through the socket.
+                int bytesSent = sender.Send(msg);
+            }
         }
     }
 }
