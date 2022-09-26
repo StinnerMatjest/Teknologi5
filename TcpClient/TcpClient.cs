@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Xml.Linq;
 
 class EmployeeTCPClient
 {
@@ -15,24 +16,66 @@ class EmployeeTCPClient
             StreamReader sr = new StreamReader(s);
             StreamWriter sw = new StreamWriter(s);
             sw.AutoFlush = true;
-            Console.WriteLine(sr.ReadLine());
-            sw.WriteLine(Console.ReadLine());
-            while (true)
+
+            Console.WriteLine(sr.ReadLine()); //server spørger efter brugernavn
+            string username = Console.ReadLine(); //bruger navn gemmes lokalt
+            sw.WriteLine(username); //vi sender serveren vores brugernavn
+            Console.SetCursorPosition(0, Console.CursorTop - 1);
+            ClearCurrentConsoleLine();
+            
+
+            List<string> messages = new();
+            bool chatOver = false;
+
+            while (!chatOver)
             {
-                string name = Console.ReadLine();
-                sw.WriteLine(name);
-                if (name == "") break;
-                Console.WriteLine(sr.ReadLine());
+                string incoming;
+                bool messagesToRead = true;
+                do
+                {
+
+                    incoming = sr.ReadLine();
+
+                    if (int.Parse(incoming.Split('|').Last()) == 1) //Hvis dette er den sidste besked, er der ikke flere at læse
+                    {
+                        messagesToRead = false;
+                    }
+                    if (incoming != "" || incoming != null)
+                    {
+                        Console.WriteLine(incoming.Split('|').First());
+                        
+                    }
+                    else
+                        messagesToRead = false;
+                } while (messagesToRead);
+                Console.Write(username + ": ");
+
+                string input = Console.ReadLine();
+                if (input != "Exit" || input != "exit")
+                {
+                    sw.WriteLine(input);
+                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    ClearCurrentConsoleLine();
+
+                }
+                else if (input == "") // dette fucker det hele op, skriv altid noget, for nu
+                    input = "do nothing";
+                else
+                    chatOver = true;
             }
+            sw.WriteLine(username + " has left the chat");
             s.Close();
         }
         finally
         {
-            // code in finally block is guranteed 
-            // to execute irrespective of 
-            // whether any exception occurs or does 
-            // not occur in the try block
             client.Close();
         }
+    }
+    public static void ClearCurrentConsoleLine()
+    {
+        int currentLineCursor = Console.CursorTop;
+        Console.SetCursorPosition(0, Console.CursorTop);
+        Console.Write(new string(' ', Console.WindowWidth));
+        Console.SetCursorPosition(0, currentLineCursor);
     }
 }
