@@ -48,8 +48,6 @@ namespace Server
                 do
                 {
                     handler = listener.Accept();
-
-
                     do
                     {
                         bytes = new byte[1024];
@@ -84,6 +82,7 @@ namespace Server
             Console.WriteLine("\n Press any key to continue...");
             Console.ReadKey();
         }
+
 
 
 
